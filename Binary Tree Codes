@@ -1,0 +1,210 @@
+package testbintree;
+
+import java.util.ArrayList;
+
+public class BinTree {    
+    public TNode root;    
+    
+    public BinTree(String[] a) throws IllegalArgumentException{
+        root = new TNode (null,null,null);  //initializes the root of the tree
+        
+        for (int i=0; i<a.length; i++){     //iterate throught he array a
+            TNode node = root;
+            for (int j=0; j<a[i].length();j++){     //iterate through each string
+                if (a[i].charAt(j) == '1'){     //go right if '1'                    
+                    if (node.right != null){                            
+                        if (node.right.data != null)    
+                            throw new IllegalArgumentException("Prefix");   //if node exists (prefix)      
+                    }                    
+                    else { 
+                        node.right = new TNode(null,null,null);     //new node if not a prefix
+                    }                    
+                    node = node.right;  //move right
+                }
+                else if ('0' == a[i].charAt(j) ){   //if '0'
+                    if (node.left != null){
+                        if (node.left.data != null){ //if leaf is not empty
+                            throw new IllegalArgumentException("Prefix");
+                        }
+                    }
+                    else{
+                        node.left = new TNode(null,null,null);  //create leaf
+                    }                   
+                    node = node.left;       //move left
+                }
+            }
+            if (node.right != null || node.left!=null){ 
+                throw new IllegalArgumentException("Prefix");
+            }            
+            node.data = "c" + i; 
+        }
+    }
+    
+    
+    public void printTree(){         
+        printTree(root);        
+    }    
+    private void printTree(TNode t){
+        if (t!=null){
+            printTree(t.left);  //print left half of tree
+            if (t.data == null){        //internal node
+                System.out.print("I ");
+            }
+            else
+                System.out.print(t.data + " ");     //leaf node
+            printTree(t.right);         //right half of tree
+        }
+    }    
+    
+    public int height(){       //use height function
+        return (height(root)-1);
+    }    
+    private int height(TNode t){        
+        if (t==null){            
+            return 0;   //return 0 if leaf
+        }
+        else{            
+            int a = height(t.right);    
+            int b = height(t.left);  
+            if (b>a)        //add height of bigger side of each sub tree
+                return (1+b);
+            else
+                return 1+a;
+        }
+    }
+    
+    public ArrayList<String> getCodewords(){        
+        ArrayList<String> arrayCodewords = new ArrayList();        
+        return getCodewords(arrayCodewords, root, "","" );  //base case
+    }
+    private ArrayList<String> getCodewords(ArrayList<String> array, TNode node, String total, String bin){        
+        String code = total + bin;        
+        if (node.data != null){     //leaf with a code            
+            array.add(code);        //add code to array
+        }
+        else{            
+            TNode left = node.left;     //left sub tree
+            TNode right = node.right;           //right sub tree
+            getCodewords(array, left, code, "0");       //go left, add 0
+            getCodewords(array, right, code, "1");      //go right, add 1
+        }       
+        return array;       
+    }
+    
+    public String [] convert(){        
+        ArrayList<String> code = getCodewords();    //binary representation of tree codes
+        int length = (int)Math.pow(2, height());    
+        length*=2;     
+        String[] newArray = new String[length];     //initialize array of size tree nodes
+        newArray[0] = null;         
+        for (int i=0; i<code.size(); i++){    //iterate through code words arraylist
+            int index = 1;             
+            String temp = code.get(i).toString();     //get each element in code, convert to string       
+            for (int j=0; j<temp.length(); j++){           
+                newArray[index] = "I";              //internal node
+                if (temp.charAt(j) == '0'){         
+                    index = 2*index;        //store left element
+                }
+                else if (temp.charAt(j) == '1'){
+                    index = 2*index +1;        //store right element
+                }
+            }          
+            newArray[index] = temp;         
+        }        
+        return newArray;      
+    }
+    
+    public ArrayList<String> decode(String s){        
+        String[] code = convert();    //initialize array of binary code       
+        ArrayList<String> array = new ArrayList<>();        
+        while (s.length() != 0){    //go through input array        
+            for (int i=0; i<code.length; i++){//check every alphabet          
+                if ((code[i] != null) && (s.startsWith(code[i].toString()))){//if this code is in the input s                   
+                    array.add(code[i]);                    //add into array 
+                    s = s.substring(code[i].length());      //take out code from s
+                    break;  
+                }
+            }
+        }        
+        return array;
+    }
+    
+    public void printLevelOrder() throws Exception{        
+        String [] temp = convert();
+        MyQueue a = new MyQueue(temp);         
+        String b;        
+        for (int i=0; i<temp.length; i++){
+            b = a.dequeue();      //visit last inputted item  
+            if (b == "I")
+                System.out.print("I ");         
+            else if (b != null)     //prints code stored in leaf
+                System.out.print(b+ " ");            
+        }
+    }
+}
+
+
+public class TNode {
+    String data;
+    TNode left;
+    TNode right;
+    
+    TNode(String s, TNode l, TNode r){
+        data = s;
+        left = l;
+        right = r;
+    }
+}
+
+
+public class MyQueue {
+    public int size;
+    private int front; 
+    private int end;
+    private String[] array;
+    
+    public MyQueue(String[] add){
+        size = add.length;
+        array = new String[size];
+        size =0;
+        front =0;
+        end = 0;        
+        for (int i=0; i<add.length ; i++){
+            enqueue(add[i]); //add all elements from parameter array
+        }
+        
+    }
+    public boolean isEmpty(){
+        return (size == 0);
+    }    
+    public boolean isFull(){
+        return false;
+    }
+    public void enqueue(String temp){
+        size++;
+        array[end] = temp;
+        end++;
+    }
+    public String dequeue() throws Exception{
+        if (isEmpty()){
+            throw new Exception("Queue underflow");
+        }
+        else{
+            size--;
+            String temp = array[front];
+            front++;
+            return temp;
+        }
+    }    
+}
+
+
+public class QNode<String> {
+    String element;
+    QNode next;
+    
+    public QNode(String e, QNode n){
+        element=e;
+        next=n;
+    }    
+}
