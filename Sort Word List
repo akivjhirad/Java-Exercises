@@ -24,7 +24,7 @@ public class WordList {
             insert(arrayOfWords[i]);        
         }
     }
-    
+     
     public int getSize(){
         int count = 0;
         for(int i = 0; i < wordarray.length; i++){      
