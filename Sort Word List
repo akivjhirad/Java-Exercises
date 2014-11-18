@@ -1,0 +1,152 @@
+package testwordlist;
+
+import java.lang.String;
+
+/**
+ *
+ * @author Akiv
+ */
+public class WordList {
+    
+    private int words;
+    private String wordarray[];
+    private int size;
+    
+    public WordList(int capacity){
+        wordarray = new String[capacity];
+        size = capacity;
+        words=0;
+    }    
+    public WordList(String[] arrayOfWords){
+        size = arrayOfWords.length*2;
+        wordarray = new String[size];
+        wordarray[0] = arrayOfWords[0];
+        words=1;
+        for (int i=1; i<arrayOfWords.length; i++){
+            if (arrayOfWords[i]==null)          //skip null values
+                continue;
+            insert(arrayOfWords[i]);        
+        }
+    }
+    
+    public int getSize(){
+        int count = 0;
+        for(int i = 0; i < wordarray.length; i++){      
+            if(wordarray[i]!= null){        //counts number of non-null spots
+                count++;
+            }
+        }
+        return count;
+    }
+    public int getCapacity(){               
+        return wordarray.length;            //gets # of words and null spots
+    }
+    public String getWordAt(int i){
+        if (i<0 || i>=getSize())
+            throw new ArrayIndexOutOfBoundsException("Input is Invalid");
+        else
+            return wordarray[i];
+    }
+    public void insert(String newword){
+        if (getSize() == 0)             //if list is empty
+            wordarray[0] = newword;
+        else{
+            for (int i=0; i<getSize(); i++){  //no duplication inside the array
+                if (newword.compareTo(wordarray[i]) == 0)
+                    return;
+            }
+            if (getSize() != getCapacity()){        //regular array
+                if (newword.compareTo(wordarray[getSize()-1]) > 0){     //comparing new word to last element, insert
+                    wordarray[getSize()] = newword;                     //to end if bigger than last element
+                    words++;
+                }
+                else{
+                    for(int i=0; i<getSize(); i++){
+                        if (newword.compareTo(wordarray[i]) < 0){       //if an element in array is bigger, shift all 1 pos.
+                            for (int j=getSize()-1; j>=i; j--){         //and insert new word in orig. element spot
+                                wordarray[j+1] = wordarray[j];
+                            }
+                            wordarray[i] = newword;
+                            words++;                                    //increment words
+                            break;
+                        }
+                    }
+                }
+            }
+            else{       //if array is full
+                String temp[] = new String[getCapacity()*2];
+                for (int i=0; i<getSize(); i++)                             //copy orig. array into temp
+                    temp[i] = wordarray[i];
+                if (newword.compareTo(temp[getSize()-1]) > 0){              //comparing new word to last element, insert 
+                    temp[getSize()] = newword;                              //to end if bigger than last element
+                    words++;
+                }
+                else{
+                    for(int i=0; i<getSize(); i++){
+                        if (newword.compareTo(temp[i]) < 0){                //if an element in array is bigger, shift all 1 pos.
+                            for (int j=getSize()-1; j>=i; j--)              //and insert new word in orig. element spot
+                                temp[j+1] = temp[j];
+                            temp[i] = newword;
+                            words++;
+                            break;
+                        }
+                    }
+                    wordarray = new String[getCapacity()*2];
+                    for (int k=0; k<=getSize(); k++)                         //copy array back
+                        wordarray[k] = temp[k];         //wordarray = temp***
+                }
+            }
+        }
+    }
+    public int find (String word){
+        int middle, low=0, high=getSize()-1;
+        while (low<=high){
+            middle = (low+high)/2;
+            if (word.compareTo(wordarray[middle]) == 0)         //return middle index if word is found in middle
+                return middle;
+            if (word.compareTo(wordarray[middle]) > 0)          //if word is bigger than middle, search in top half
+                low = middle+1;
+            else                                                //search in bottom half
+                high = middle-1;            
+        }
+        return -1;       
+    }
+    public void remove (String word){   
+        for (int i=0; i<getSize(); i++){
+            if (word.compareTo(wordarray[i]) == 0){             //search for word
+                for (int j=i; j<(getSize()-1); j++)
+                    wordarray[j] = wordarray[j+1];              //shift all indices left by 1 spot
+                wordarray[getSize()-1] = null;                  //last spot points to null now
+                words--;                                        //decrement words
+            }
+        }
+    }
+    public WordList sublist(char init, char fin){
+        int num=0, j=0;
+        for (int i=0; i<getSize(); i++){
+            if ((wordarray[i].charAt(0)>=init) && (wordarray[i].charAt(0)<=fin))    //if a word is in the range 
+                num++;                  //count how many words are in the range
+        }
+        WordList newlist = new WordList(2*num);
+        for (int i=0; i<getSize(); i++){
+            if ((wordarray[i].charAt(0)>=init) && (wordarray[i].charAt(0)<=fin)){
+                newlist.wordarray[j] = wordarray[i];        //if word is in range, put word into allocated list
+                newlist.words++;
+                j++;
+            }
+        }
+        return newlist;
+    }
+    public String toString(){
+        String output = new String();
+        for (int i=0; i<getSize(); i++)
+            output += wordarray[i] + "\n";
+        return output;
+    }
+    
+    public void toList(){
+        for (int i=0; i<getSize(); i++)
+            System.out.print(wordarray[i]+",");
+        System.out.println("\n");
+    }
+}
