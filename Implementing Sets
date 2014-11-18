@@ -1,0 +1,211 @@
+public class DLLNode {
+    int element;
+    DLLNode prev;
+    DLLNode next;
+    
+    DLLNode(int i, DLLNode n, DLLNode p){
+        element = i;
+        next = n;
+        prev = p;        
+    }
+}
+
+
+public class DLLSet {
+    private DLLNode head;
+    private DLLNode tail;
+    private int size;
+    static DLLSet recset1 = new DLLSet();
+    static DLLSet recset2 = new DLLSet();
+    
+    public DLLSet(){
+        head = new DLLNode(0,null,null);
+        tail = new DLLNode(0,null,head);
+        head.next = tail;
+        size = 0;
+    }
+    public DLLSet(int[] sortedArray){        
+        head = new DLLNode(0,null,null);  
+        tail = new DLLNode(0,null,head);
+        head.next = tail;
+        size = 0;
+        DLLNode p = head;
+        for (int i=0; i<sortedArray.length; i++){
+            p.next = new DLLNode(sortedArray[i], tail, p);
+            p = p.next;
+            size++;
+        }
+        tail.prev = p;
+    }
+    
+    public int getSize(){
+        DLLNode p = head;
+        int count = 0;
+        while (p.next!=tail){
+            p = p.next;
+            count++;
+        }
+        return count;
+    }
+    public DLLSet copy(){
+        DLLSet deepcopy = new DLLSet();
+        deepcopy.head = new DLLNode(0,null,null);       //initialize new deepcopy DLL
+        deepcopy.tail = new DLLNode(0,null,deepcopy.head);  
+        deepcopy.head.next = tail;
+        deepcopy.size = 0;
+        DLLNode p = head;
+        DLLNode q = deepcopy.head;
+        for (int i=0; i<getSize(); i++){
+             q.next = new DLLNode(p.next.element,deepcopy.tail, q);
+             deepcopy.size++;
+             q = q.next;
+             p = p.next;
+        }
+        deepcopy.tail.prev = q;
+        return deepcopy;
+    }
+    public boolean isIn(int v){
+        if (getSize() == 0)     //if empty list, v is not in DLL
+            return false;
+        for (DLLNode p=head.next; p.next!=tail; p=p.next){  //find v
+            if (p.element == v)
+                return true;
+        }
+        return false;
+    }
+    public void add(int v){
+        boolean done = false;   //preset to use as contidition statement 
+        DLLNode p;          //temp hold node position
+        for (p = head.next; p != tail && done == false; p = p.next) {
+            if ((p.element) == v) {     //if the newword is already in list
+                done = true;        //exit the loop
+            }   //newword should go in the middle
+            else if (v < (p.element)) {
+                //reorder the words
+                DLLNode addition = new DLLNode(v, p,p.prev);
+                p.prev.next = addition;
+                p.prev = addition;
+                done = true; //exit loop
+                size++; //update size
+            }
+         }
+         if (done == false){   //if word is not found till end 
+            DLLNode addition = new DLLNode(v, tail,tail.prev);
+            done = true; //exit loop
+            size++; //update size
+            tail.prev.next = addition;
+            tail.prev = addition;
+        }
+        
+    }
+    public void remove(int v){  //O(n) - n=size of list
+        DLLNode p=head.next;
+        while (p!=tail && (p.element != v))     //increment till tail is found or v is found
+            p=p.next;
+        if (p!=tail){       //if v is found
+            p.prev.next=p.next;
+            p.next.prev=p.prev;
+        }
+    }
+    public DLLSet union(DLLSet s){  //O(m) : m = size of lists combines
+        DLLSet union = new DLLSet();
+        DLLNode p=head.next, q=s.head.next, r=union.head;
+        while ((p!=tail) && (q!=s.tail)){       //run while this tail or s tail is not reached
+            if (p.element < q.element){         //if this element is smaller
+                r.next = new DLLNode(p.element,union.tail,r);   //add to end of r
+                r = r.next;    //increment r, this list
+                p = p.next;
+                union.size++;
+            }
+            if (q.element < p.element){     //if this element is greater than s, add s element into union
+                r.next = new DLLNode(q.element,union.tail,r);
+                r = r.next;
+                q = q.next;       
+                union.size++;
+            }
+            if (p.element == q.element){
+                r.next = new DLLNode(p.element,union.tail,r);
+                r = r.next;
+                p = p.next; 
+                q = q.next;
+                union.size++;
+            }            
+        }
+        if (p == tail){     //if end of this is reached, add rest of s 
+            while (q!=s.tail){      //until s tail is reached
+                r.next = new DLLNode(q.element,union.tail,r);
+                r = r.next;
+                q = q.next;
+                union.size++;
+            }
+        }
+        if (q == s.tail){       //if end of s is reached, add rest of this
+            while (p!=tail){        //until this tail is reached
+                r.next = new DLLNode(p.element,union.tail,r);
+                r = r.next;
+                p = p.next;
+                union.size++;
+            }
+        }
+        union.tail.prev=r;
+        return union;
+    }
+    public DLLSet intersection(DLLSet s){   //run time O(m)
+        DLLSet inter = new DLLSet();
+        DLLNode p=head.next, q=s.head.next, r=inter.head;
+        while ((p!=tail) && (q!=s.tail)){   //while either tail is not reached
+            if (p.element < q.element)
+                p = p.next;
+            if (q.element < p.element)
+                q = q.next;
+            if (p.element == q.element){    //if elements are equal, add into inter
+                r.next = new DLLNode(p.element,inter.tail,r);
+                r = r.next;
+                p = p.next;
+                q = q.next;
+                inter.size++;
+            }                
+        }
+        inter.tail.prev = r;
+        return inter;
+    }
+    public static DLLSet recUnion(DLLSet[] sArray){
+        return recUnion(sArray,0,sArray.length-1);
+    }
+    private static DLLSet recUnion(DLLSet[] sArray, int first, int last){        
+        if (first>last)
+            return recset1.union(recset2);              
+        else{
+            recset1 = recset1.union(sArray[first]);         
+            recset2 = recset2.union(sArray[last]);          
+            return recUnion(sArray, first+1, last-1);
+        }        
+    }    
+    public static DLLSet fastUnion(DLLSet[] sArray){
+        int n = sArray.length;
+        while (n != 0){
+            for (int i=0; i<n-1; i+=2){
+                sArray[i] = sArray[i].union(sArray[i+1]);
+            }
+            for (int j=2;j<n-1;j=j+2){
+                sArray[j/2] = sArray[j];
+            }
+            n /= 2;
+        }
+        return sArray[0];
+    }
+    public String toString() {
+        String longString = "";
+	if(size==0)
+	    longString = "The set is empty";
+        else{
+            DLLNode p;
+	    longString = new String("");
+            for (p = head.next; p.next!= tail ; p=p.next) {
+                longString =longString +  p.element + "\n";          
+            }//end for
+            longString =longString +  p.element; 
+        }
+        return longString;
+    }
+}
