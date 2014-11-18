@@ -1,0 +1,163 @@
+import java.lang.String;
+
+public class WordLinkedList{   
+    private int size;
+    private Node head;
+    
+    public WordLinkedList(){
+        size = 0;
+        head = new Node(null,null);
+    }
+    public WordLinkedList(String[] arrayOfWords){
+        head = new Node(null,null);
+        size = 0;
+        for (int i = 0; i < arrayOfWords.length; i++){
+            insert(arrayOfWords[i]);
+        }
+    }
+    
+    public int getSize(){
+        int i=0;
+        if (head.element == null) return 0;
+        else{
+            Node p = head;
+            while(p != null){ 
+                i++; 
+                p = p.next;
+            }
+            return i;
+        }
+    }
+    public String getWordAt(int i) throws IndexOutOfBoundsException{
+        if (i >= getSize() || i < 0) throw new IndexOutOfBoundsException("Invalid Index");
+        else{
+            Node p = head;
+            for (int j = 0; j < i; j++){ p = p.next; }
+            return p.element;
+        }            
+    }
+    public void insert(String newword){       
+        if (getSize() == 0) {head = new Node(newword,null); size++;}    //insert into empty list        
+        else if (getSize() == 1){
+            if (head.element.compareTo(newword) > 0) {head = new Node(newword, head); size++;}            
+            else if (head.element.compareTo(newword) < 0) {head.next = new Node(newword, null); size++;}            
+            else return;            
+        }        
+        else{
+            Node p = head;
+            if (head.element.compareTo(newword) > 0){       //insert word at beginning
+                head = new Node(newword, head);
+                size++;
+                return;
+            }
+            if (head.element.compareTo(newword) == 0) return;      //compare word at beginning                 
+            if (getWordAt(getSize()-1).compareTo(newword) < 0){    //add to end
+                while (p.next != null) p = p.next;
+                p.next = new Node(newword,null);
+                size++;
+                return;
+            }
+            while (p.next != null){         //go through list and find first larger word, insert right before
+                if (p.next.element.compareTo(newword) == 0) return;
+                else if (p.next.element.compareTo(newword) > 0){
+                    p.next = new Node(newword, p.next);
+                    size++;
+                    return;
+                }
+                else p = p.next;
+            }            
+        }
+    }
+    public int find(String word){
+        int pos = 0;
+        for (Node p=head; p.next!=null; p=p.next){
+            if (p.element.compareTo(word) == 0) return pos;  //word is found return position                     
+            pos++;                                           //stores position
+        }
+        return -1;      //word not found
+    }
+    public String remove(int i) throws IndexOutOfBoundsException{
+        String temp;
+        if (i >= getSize() || i < 0) throw new IndexOutOfBoundsException("Invalid Index");            
+        else if (i == 0){      
+            temp = head.element;                             //return first element
+            head = head.next;                                //take out first node
+            }
+        else if (i == getSize() - 1){       //remove last item
+            Node p = head;
+            while (p.next.next != null) p = p.next;
+            temp = p.next.element;
+            p.next = null;
+        }
+        else{
+            Node p = head;
+            for (int j=0; j<i-1; j++){                      //go to index-1
+                p = p.next; 
+            }
+            temp = p.next.element;                         //return next index element
+            p.next = p.next.next;                           //remove next (required) index
+        }
+        size--;
+        return temp;
+    }
+    public void mergeTo(WordLinkedList that){
+        if (head.element == null || that.head.element == null){     //if either list is empty            
+            if (head.element == null){          //if this list is empty
+                head = new Node(that.head.element, null);
+                Node q = head, r = that.head;                
+                while (r.next != null){              //add all elements from that into this list
+                    r = r.next;         
+                    q.next = new Node(r.element, null);    
+                    q = q.next;                    
+                }           
+            }
+            if (that.head.element == null) return;
+        }
+        if (head.element.compareTo(that.head.element) > 0){     //if that head element goes before this head
+            head = new Node(that.head.element, head);
+            size++;
+        }
+        Node p = head.next, q = head, r = that.head.next;        
+        if (head.element.compareTo(that.head.element) < 0){
+                r = that.head;
+        }
+        while ((p != null) && (r != null)){     //till end of this or that is reached
+            if (p.element.compareTo(r.element) == 0){   //move to next node of both list if elements are equal
+                p = p.next;
+                q = q.next;
+                r = r.next;
+            }
+            else if (p.element.compareTo(r.element) > 0){   //this element is larger, insert before this element
+                q.next = new Node(r.element,p);
+                size++;
+                q = q.next;
+                r = r.next;
+            }
+            else{       //this element is smaller, move to next node in this list
+                p = p.next;
+                q = q.next;
+            }
+        }
+        while (r != null){      //add remaining elements to end of this list
+            q.next = new Node(r.element,null);
+            q = q.next;
+            r = r.next;
+        }
+        that.head.element = null;
+        that.head.next = null;
+    }     
+    public String toString() {
+        String longString = "";
+	if(getSize()==0)
+	    longString = "The list is empty";
+        else{
+            Node p;
+	    longString = new String("");
+            for (p = head; p.next!= null ; p=p.next) {
+                longString =longString +  p.element + "\n";          
+            }//end for
+            longString =longString +  p.element; 
+        }
+        return longString;
+    }
+}
